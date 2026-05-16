@@ -3,8 +3,8 @@ from .models import MenuItem, Reservation
 
 @admin.register(MenuItem)
 class MenuItemAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'price', 'is_special')
-    list_filter = ('category', 'is_special')
+    list_display = ('name', 'category', 'price', 'is_special', 'hit')
+    list_filter = ('category', 'is_special', 'hit')
     search_fields = ('name', 'description')
 
 @admin.register(Reservation)

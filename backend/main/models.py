@@ -14,6 +14,8 @@ class MenuItem(models.Model):
     price = models.DecimalField(max_digits=6, decimal_places=2)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='main_courses', verbose_name='Категорія')
     is_special = models.BooleanField(default=False)
+    hit = models.BooleanField(default=False, verbose_name='Хіт продажів')
+    image = models.ImageField(upload_to='dishes/', blank=True, null=True, verbose_name='Зображення')
 
     class Meta:
         verbose_name = 'Страва'

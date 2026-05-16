@@ -13,5 +13,6 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('api/categories/', views.categories, name='api-categories'),
     path('api/specials/', views.specials, name='api-specials'),
+    path('api/hits/', views.hits, name='api-hits'),
     path('api/availability/', views.availability, name='api-availability'),
 ]

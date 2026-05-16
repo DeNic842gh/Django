@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.templatetags.static import static
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -8,13 +9,28 @@ from .models import MenuItem, Reservation
 from .serializers import MenuItemSerializer, ReservationSerializer
 
 
+HIT_DISH_IMAGES = {
+    'Сундук Золота': 'img/chest_xit.png',
+    'Трофей Нептуна': 'img/neptun_xit.png',
+    'Улов Боцмана': 'img/ylov_xit.png',
+    'Хвиля Сирен': 'img/wave_xit.png',
+}
+
+
 def home(request):
-    menu_items = MenuItem.objects.all().order_by('category', 'name')[:6]
+    hit_items = []
+    for item in MenuItem.objects.filter(hit=True).order_by('name'):
+        static_path = HIT_DISH_IMAGES.get(item.name)
+        if static_path:
+            item.display_image = static(static_path)
+        elif item.image:
+            item.display_image = item.image.url
+        else:
+            item.display_image = static('img/menu.svg')
+        hit_items.append(item)
     return render(request, 'home.html', {
-        'title': 'Ресторан «Чорна Вітрильна»',
-        'headline': 'Пірнати в смаки морів',
-        'tagline': 'Піратська їжа, морські легенди та затишна атмосфера.',
-        'menu_items': menu_items,
+        'title': 'Treasure Food',
+        'hit_items': hit_items,
     })
 
 
@@ -86,6 +102,14 @@ def categories(request):
 def specials(request):
     specials_qs = MenuItem.objects.filter(is_special=True)
     serializer = MenuItemSerializer(specials_qs, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def hits(request):
+    hits_qs = MenuItem.objects.filter(hit=True)
+    serializer = MenuItemSerializer(hits_qs, many=True)
     return Response(serializer.data)
 
 
