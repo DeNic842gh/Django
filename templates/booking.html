@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="header-title">🏴‍☠️ {{ title }}</div>
+            <nav>
+                <a href="{% url 'home' %}">Головна</a>
+                <a href="{% url 'menu' %}">Меню</a>
+                <a href="{% url 'booking' %}" class="active">Бронювання</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="booking-hero">
+            <div class="booking-hero-content">
+                <h1>⚓ Забронюйте столик</h1>
+                <p>Обирайте страви та бронюйте місце в нашому піратському ресторані</p>
+            </div>
+        </section>
+
+        <section class="booking-content">
+            <div class="menu-display">
+                <div class="menu-image-container">
+                    <img src="{% static 'img/menu.png' %}" alt="Меню ресторану" class="menu-png">
+                    <div class="menu-overlay">
+                        <h2>Наше меню</h2>
+                        <div class="menu-items-list">
+                            {% for item in menu_items %}
+                                <div class="menu-item-display">
+                                    <div class="item-header">
+                                        <span class="item-name">{{ item.name }}</span>
+                                        <span class="item-price">{{ item.price }} ₴</span>
+                                    </div>
+                                    <div class="item-category">{{ item.get_category_display }}</div>
+                                    <div class="item-description">{{ item.description }}</div>
+                                    {% if item.is_special %}
+                                        <div class="item-special">⭐ Фірмова страва</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reservation-form-section">
+                <form class="reservation-form" id="bookingForm">
+                    <h3>Форма бронювання</h3>
+                    <div class="form-group">
+                        <label for="name">Ім'я *</label>
+                        <input type="text" id="name" name="name" placeholder="Ваше ім'я" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Телефон *</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+380 XX XXX XXXX" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="guests">Кількість гостей *</label>
+                        <input type="number" id="guests" name="guests" min="1" max="20" value="2" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="datetime">Дата та час *</label>
+                        <input type="datetime-local" id="datetime" name="datetime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="special_requests">Спеціальні прохання</label>
+                        <textarea id="special_requests" name="special_requests" placeholder="Наприклад: святкування, дієтичні обмеження..."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Забронювати столик</button>
+                </form>
+                <div class="success-message" id="successMessage">
+                    Дякуємо! Ваш бронювання прийнято. Ми зв'яжемося з вами найближчим часом.
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Ресторан «Чорна Вітрильна». Всі права захищені.</p>
+    </footer>
+
+    <script>
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            const token = localStorage.getItem('token');
+
+            fetch('/api/reservations/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    this.reset();
+                } else {
+                    alert('Помилка бронювання. Спробуйте ще раз.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Помилка з\'єднання. Спробуйте ще раз.');
+            });
+        });
+
+        const datetimeInput = document.getElementById('datetime');
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        datetimeInput.min = now.toISOString().slice(0, 16);
+    </script>
+</body>
+</html>

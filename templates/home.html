@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="header-title">🏴‍☠️ {{ title }}</div>
+            <nav>
+                <a onclick="showSection('home')" class="nav-link active" data-section="home">Головна</a>
+                <a href="{% url 'menu' %}" class="nav-link" data-section="menu">Меню</a>
+                <a href="{% url 'booking' %}" class="nav-link" data-section="booking">Бронювання</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero-image">
+        <div class="hero-content">
+            <h1>{{ headline }}</h1>
+            <p>{{ tagline }}</p>
+            <p>«Чорна Вітрильна» — це місце, де морські легенди та вишукані смаки зустрічаються під одним прапором. Ми запрошуємо вас на вечерю серед старовинних карт, золотих трофеїв та ароматів спецій з далеких острівів.</p>
+            <div class="welcome-message">Ласкаво просимо до нашого піратського ресторану! ⚓</div>
+        </div>
+    </section>
+
+    <main>
+        <section class="section" id="menu">
+            <div class="menu-section">
+                <h2>☠️ Меню піратського корабля</h2>
+                <div class="menu-grid">
+                    {% for item in menu_items %}
+                    <article class="menu-item{% if item.special %} special{% endif %}">
+                        {% if item.special %}
+                        <div class="special-badge">Фірмова страва</div>
+                        {% endif %}
+                        <h3>{{ item.name }}</h3>
+                        <div class="category">{{ item.get_category_display }}</div>
+                        <div class="price">{{ item.price }} ₴</div>
+                        <p>{{ item.description }}</p>
+                    </article>
+                    {% endfor %}
+                </div>
+                <a href="/api/menu/" class="menu-link">Див. усі страви у REST API</a>
+            </div>
+        </section>
+
+        <section class="section" id="booking">
+            <div class="reservation-section">
+                <h2>⚓ Забронюйте столик</h2>
+                <form class="reservation-form" id="bookingForm">
+                    <div class="form-group">
+                        <label for="name">Ім'я *</label>
+                        <input type="text" id="name" name="name" placeholder="Ваше ім'я" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Телефон *</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+380 XX XXX XXXX" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="guests">Кількість гостей *</label>
+                        <input type="number" id="guests" name="guests" min="1" max="20" value="2" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="datetime">Дата та час *</label>
+                        <input type="datetime-local" id="datetime" name="datetime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="special_requests">Спеціальні прохання</label>
+                        <textarea id="special_requests" name="special_requests" placeholder="Наприклад: святкування, дієтичні обмеження..."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Забронювати столик</button>
+                </form>
+                <div class="success-message" id="successMessage">
+                    Дякуємо! Ваш бронювання прийнято. Ми зв'яжемося з вами найближчим часом.
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Ресторан «Чорна Вітрильна». Всі права захищені.</p>
+    </footer>
+
+    <script>
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('active'));
+
+            // Show selected section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            // Update navigation
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+
+            const activeLink = document.querySelector(`[data-section="${sectionId}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+        }
+
+        // Booking form submission
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            // Get JWT token (you'll need to implement login first)
+            const token = localStorage.getItem('token');
+
+            fetch('/api/reservations/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    this.reset();
+                } else {
+                    alert('Помилка бронювання. Спробуйте ще раз.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Помилка з\'єднання. Спробуйте ще раз.');
+            });
+        });
+
+        // Set minimum datetime to now
+        const datetimeInput = document.getElementById('datetime');
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        datetimeInput.min = now.toISOString().slice(0, 16);
+    </script>
+</body>
+</html>

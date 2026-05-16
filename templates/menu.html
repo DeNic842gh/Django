@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="header-title">🏴‍☠️ {{ title }}</div>
+            <nav>
+                <a href="{% url 'home' %}">Головна</a>
+                <a href="{% url 'menu' %}" class="active">Меню</a>
+                <a href="{% url 'booking' %}">Бронювання</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="menu-hero">
+            <div class="menu-hero-content">
+                <h1>☠️ Меню піратського корабля</h1>
+                <p>Смачні страви з морських глибин та скарбів океану</p>
+            </div>
+        </section>
+
+        <section class="full-menu">
+            {% for category_code, category_name in categories %}
+                {% if menu_items|length > 0 %}
+                    <div class="category-section">
+                        <div class="category-title">
+                            {% if category_code == 'appetizers' %}
+                                <img src="{% static 'img/zakyski.png' %}" alt="{{ category_name }}">
+                            {% elif category_code == 'main_courses' %}
+                                <img src="{% static 'img/osn.stravi.png' %}" alt="{{ category_name }}">
+                            {% elif category_code == 'seafood' %}
+                                <img src="{% static 'img/mor.crtabi.png' %}" alt="{{ category_name }}">
+                            {% elif category_code == 'drinks' %}
+                                <img src="{% static 'img/Hapoi.png' %}" alt="{{ category_name }}">
+                            {% elif category_code == 'desserts' %}
+                                <img src="{% static 'img/desertu.png' %}" alt="{{ category_name }}">
+                            {% else %}
+                                {{ category_name }}
+                            {% endif %}
+                        </div>
+                        <table class="menu-table">
+                            <thead>
+                                <tr>
+                                    <th>Назва</th>
+                                    <th>Опис</th>
+                                    <th>Ціна</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in menu_items %}
+                                    {% if item.category == category_code %}
+                                        <tr>
+                                            <td>{{ item.name }}</td>
+                                            <td>{{ item.description }}</td>
+                                            <td>{{ item.price }} ₴</td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="menu-footer">
+                <a href="/api/menu/" class="menu-link">Переглянути API меню</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Ресторан «Чорна Вітрильна». Всі права захищені.</p>
+    </footer>
+</body>
+</html>
